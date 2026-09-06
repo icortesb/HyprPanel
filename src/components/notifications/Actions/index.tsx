@@ -3,6 +3,19 @@ import { Gtk } from 'astal/gtk3';
 import AstalNotifd from 'gi://AstalNotifd?version=0.1';
 import { isPrimaryClick } from 'src/lib/events/mouse';
 
+/**
+ * Whether an action can be rendered as a button.
+ *
+ * The freedesktop spec lets a notification carry a default action with an empty id and label,
+ * which clients use to make the notification itself clickable. Rendering it as a button leaves a
+ * blank pill in the card, so it is dropped here.
+ *
+ * @param action The action to check.
+ */
+const isRenderableAction = (action: AstalNotifd.Action): boolean => {
+    return action.id.trim().length > 0 && action.label.trim().length > 0;
+};
+
 const ActionButton = ({ notification, action }: ActionButtonProps): JSX.Element => {
     return (
         <button
@@ -46,9 +59,12 @@ export const Actions = ({ notification, showActions }: ActionProps): JSX.Element
         >
             <eventbox>
                 <box className={'notification-card-actions'} hexpand valign={Gtk.Align.END}>
-                    {notification.get_actions().map((action) => {
-                        return <ActionButton notification={notification} action={action} />;
-                    })}
+                    {notification
+                        .get_actions()
+                        .filter(isRenderableAction)
+                        .map((action) => {
+                            return <ActionButton notification={notification} action={action} />;
+                        })}
                 </box>
             </eventbox>
         </revealer>

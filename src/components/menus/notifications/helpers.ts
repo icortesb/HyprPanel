@@ -1,8 +1,9 @@
 import { bind, Variable } from 'astal';
 import AstalNotifd from 'gi://AstalNotifd?version=0.1';
 import options from 'src/configuration';
+import { getNotificationGroups } from 'src/lib/shared/notifications';
 
-const { displayedTotal } = options.notifications;
+const { displayedTotal, ignore, grouped } = options.notifications;
 const notifdService = AstalNotifd.get_default();
 
 /**
@@ -15,9 +16,22 @@ const notifdService = AstalNotifd.get_default();
  */
 export const handlePageBoundaries = (curPage: Variable<number>): void => {
     Variable.derive(
-        [bind(curPage), bind(displayedTotal), bind(notifdService, 'notifications')],
-        (currentPage: number, dispTotal: number, notifications: AstalNotifd.Notification[]) => {
-            const isPageEmpty = notifications.length <= (currentPage - 1) * dispTotal;
+        [
+            bind(curPage),
+            bind(displayedTotal),
+            bind(notifdService, 'notifications'),
+            bind(ignore),
+            bind(grouped),
+        ],
+        (
+            currentPage: number,
+            dispTotal: number,
+            notifications: AstalNotifd.Notification[],
+            ignored: string[],
+            isGrouped: boolean,
+        ) => {
+            const totalItems = getNotificationGroups(notifications, ignored, isGrouped).length;
+            const isPageEmpty = totalItems <= (currentPage - 1) * dispTotal;
 
             if (isPageEmpty) {
                 const previousPage = currentPage <= 1 ? 1 : currentPage - 1;

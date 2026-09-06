@@ -63,3 +63,73 @@ export const clearNotifications = async (
     }
     removingNotifications.set(false);
 };
+
+/**
+ * Groups notifications by the application that sent them.
+ *
+ * The notifications are expected to be sorted already; both the returned groups and the notifications
+ * within each group preserve the order they were given in. Applications are matched on their
+ * normalized name, so casing and spacing differences don't split a group.
+ *
+ * @param notifications The notifications to group.
+ *
+ * @returns One group per application, each holding that application's notifications.
+ */
+export const groupNotifications = (notifications: AstalNotifd.Notification[]): NotificationGroup[] => {
+    const groups = new Map<string, NotificationGroup>();
+
+    for (const notification of notifications) {
+        const key = normalizeName(notification.app_name);
+        const existingGroup = groups.get(key);
+
+        if (existingGroup === undefined) {
+            groups.set(key, { key, notifications: [notification] });
+            continue;
+        }
+
+        existingGroup.notifications.push(notification);
+    }
+
+    return Array.from(groups.values());
+};
+
+/**
+ * Returns the groups to paginate over, sorted from newest to oldest.
+ *
+ * Notifications that share a timestamp are ordered by id, so a burst from a single application keeps
+ * the newest notification at the top of its group.
+ *
+ * With grouping disabled every notification becomes a group of its own, so a page holds a set number
+ * of notifications exactly as it did before. With grouping enabled a page holds a set number of
+ * applications instead. Every consumer of the pager must count the same items, so this is the single
+ * source of truth for that count.
+ *
+ * @param notifications The notifications to paginate.
+ * @param filter The list of applications to ignore.
+ * @param grouped Whether notifications are grouped by application.
+ *
+ * @returns The groups to spread across pages.
+ */
+export const getNotificationGroups = (
+    notifications: AstalNotifd.Notification[],
+    filter: string[],
+    grouped: boolean,
+): NotificationGroup[] => {
+    const sortedNotifications = filterNotifications(notifications, filter).sort(
+        (a, b) => b.time - a.time || b.id - a.id,
+    );
+
+    if (!grouped) {
+        return sortedNotifications.map((notification) => ({
+            key: `${notification.id}`,
+            notifications: [notification],
+        }));
+    }
+
+    return groupNotifications(sortedNotifications);
+};
+
+export interface NotificationGroup {
+    key: string;
+    notifications: AstalNotifd.Notification[];
+}

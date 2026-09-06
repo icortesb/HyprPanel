@@ -1,6 +1,5 @@
 import { Variable } from 'astal';
 import { Gtk } from 'astal/gtk3';
-import AstalNotifd from 'gi://AstalNotifd?version=0.1';
 import { isPrimaryClick } from 'src/lib/events/mouse';
 
 export const FirstPageButton = ({ curPage, currentPage }: FirstPageButtonProps): JSX.Element => {
@@ -40,7 +39,7 @@ export const PreviousPageButton = ({ curPage, currentPage }: PreviousPageButtonP
 export const NextPageButton = ({
     curPage,
     currentPage,
-    notifications,
+    totalItems,
     displayedTotal,
     dispTotal,
 }: NextPageButtonProps): JSX.Element => {
@@ -49,11 +48,11 @@ export const NextPageButton = ({
             hexpand={true}
             halign={Gtk.Align.END}
             className={`pager-button right ${
-                currentPage >= Math.ceil(notifications.length / dispTotal) ? 'disabled' : ''
+                currentPage >= Math.ceil(totalItems / dispTotal) ? 'disabled' : ''
             }`}
             onClick={(_, event) => {
                 if (isPrimaryClick(event)) {
-                    const maxPage = Math.ceil(notifications.length / displayedTotal.get());
+                    const maxPage = Math.ceil(totalItems / displayedTotal.get());
                     curPage.set(currentPage >= maxPage ? maxPage : currentPage + 1);
                 }
             }}
@@ -66,7 +65,7 @@ export const NextPageButton = ({
 export const LastPageButton = ({
     curPage,
     currentPage,
-    notifications,
+    totalItems,
     displayedTotal,
     dispTotal,
 }: LastPageButtonProps): JSX.Element => {
@@ -75,11 +74,11 @@ export const LastPageButton = ({
             hexpand={true}
             halign={Gtk.Align.END}
             className={`pager-button right ${
-                currentPage >= Math.ceil(notifications.length / dispTotal) ? 'disabled' : ''
+                currentPage >= Math.ceil(totalItems / dispTotal) ? 'disabled' : ''
             }`}
             onClick={(_, event) => {
                 if (isPrimaryClick(event)) {
-                    const maxPage = Math.ceil(notifications.length / displayedTotal.get());
+                    const maxPage = Math.ceil(totalItems / displayedTotal.get());
                     curPage.set(maxPage);
                 }
             }}
@@ -102,7 +101,7 @@ interface PreviousPageButtonProps {
 interface NextPageButtonProps {
     curPage: Variable<number>;
     currentPage: number;
-    notifications: AstalNotifd.Notification[];
+    totalItems: number;
     displayedTotal: Variable<number>;
     dispTotal: number;
 }
@@ -110,7 +109,7 @@ interface NextPageButtonProps {
 interface LastPageButtonProps {
     curPage: Variable<number>;
     currentPage: number;
-    notifications: AstalNotifd.Notification[];
+    totalItems: number;
     displayedTotal: Variable<number>;
     dispTotal: number;
 }

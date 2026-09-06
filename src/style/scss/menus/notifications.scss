@@ -50,6 +50,65 @@
         }
     }
 
+    .notification-card-content-container {
+        .notification-group {
+            margin-bottom: 0.65em;
+
+            &:last-child {
+                margin-bottom: 1em;
+            }
+
+            .notification-card {
+                margin-bottom: 0em;
+            }
+        }
+    }
+
+    .notification-group-header {
+        background: $notification-background;
+        border: 0.15em solid $notification-border;
+        border-radius: $notification-border_radius;
+        padding-left: 0.4em;
+
+        .notification-group-app-label {
+            color: $notification-label;
+            font-size: 0.95em;
+        }
+
+        .notification-group-summary-label {
+            color: $notification-time;
+            font-size: 0.84em;
+        }
+
+        .notification-group-count {
+            color: $notification-actions-text;
+            background: $notification-actions-background;
+            border-radius: $notification-border_radius;
+            padding: 0em 0.5em;
+            margin-right: 0.5em;
+            font-size: 0.84em;
+        }
+
+        .notification-group-expander {
+            color: $notification-time;
+            font-size: 1.1em;
+            margin-right: 0.6em;
+        }
+    }
+
+    .notification-group-children {
+        margin-top: 0.35em;
+        margin-left: 1em;
+
+        .notification-card.grouped {
+            margin-bottom: 0.35em;
+
+            &:last-child {
+                margin-bottom: 0em;
+            }
+        }
+    }
+
     .notification-card-content {
         margin-bottom: 0.25em;
     }

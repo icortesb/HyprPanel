@@ -101,6 +101,12 @@ export const NotificationSettings = (): JSX.Element => {
                     min={1}
                 />
                 <Option
+                    opt={options.notifications.grouped}
+                    title="Group by Application"
+                    subtitle="Collapse an application's notifications under a single header."
+                    type="boolean"
+                />
+                <Option
                     opt={options.theme.bar.menus.menu.notifications.pager.show}
                     title="Show Pager"
                     subtitle="Shows pagination footer."

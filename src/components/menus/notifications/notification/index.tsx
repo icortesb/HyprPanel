@@ -2,13 +2,14 @@ import AstalNotifd from 'gi://AstalNotifd?version=0.1';
 import { Gtk } from 'astal/gtk3';
 import { bind, Variable } from 'astal';
 import { Placeholder } from './Placeholder';
+import { expandedGroups, NotificationGroupCard } from './NotificationGroup';
 import { NotificationCard } from 'src/components/notifications/Notification';
 import options from 'src/configuration';
-import { filterNotifications } from 'src/lib/shared/notifications';
+import { getNotificationGroups, NotificationGroup } from 'src/lib/shared/notifications';
 
 const notifdService = AstalNotifd.get_default();
 
-const { displayedTotal, ignore, showActionsOnHover } = options.notifications;
+const { displayedTotal, ignore, showActionsOnHover, grouped } = options.notifications;
 
 export const NotificationsContainer = ({ curPage }: NotificationsContainerProps): JSX.Element => {
     return (
@@ -26,13 +27,21 @@ export const NotificationsContainer = ({ curPage }: NotificationsContainerProps)
                         bind(displayedTotal),
                         bind(ignore),
                         bind(showActionsOnHover),
+                        bind(grouped),
+                        bind(expandedGroups),
                     ],
-                    (notifications, currentPage, totalDisplayed, ignored, hoverActions) => {
-                        const filteredNotifications = filterNotifications(notifications, ignored).sort(
-                            (a, b) => b.time - a.time,
-                        );
+                    (
+                        notifications,
+                        currentPage,
+                        totalDisplayed,
+                        ignored,
+                        hoverActions,
+                        isGrouped,
+                        expanded,
+                    ) => {
+                        const notificationGroups = getNotificationGroups(notifications, ignored, isGrouped);
 
-                        if (filteredNotifications.length <= 0) {
+                        if (notificationGroups.length <= 0) {
                             return <Placeholder />;
                         }
 
@@ -46,14 +55,26 @@ export const NotificationsContainer = ({ curPage }: NotificationsContainerProps)
                                 vexpand={false}
                                 vertical
                             >
-                                {filteredNotifications
+                                {notificationGroups
                                     .slice(pageStart, pageEnd)
-                                    .map((notification: AstalNotifd.Notification) => {
+                                    .map((notificationGroup: NotificationGroup) => {
+                                        const [notification] = notificationGroup.notifications;
+
+                                        if (notificationGroup.notifications.length === 1) {
+                                            return (
+                                                <NotificationCard
+                                                    className={'notification-card menu'}
+                                                    notification={notification}
+                                                    showActions={hoverActions}
+                                                />
+                                            );
+                                        }
+
                                         return (
-                                            <NotificationCard
-                                                className={'notification-card menu'}
-                                                notification={notification}
+                                            <NotificationGroupCard
+                                                group={notificationGroup}
                                                 showActions={hoverActions}
+                                                isExpanded={expanded.includes(notificationGroup.key)}
                                             />
                                         );
                                     })}

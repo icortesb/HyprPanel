@@ -28,7 +28,7 @@ const { ignore } = options.menus.media;
 const isVis = Variable(!show_active_only.get());
 
 Variable.derive(
-    [bind(show_active_only), bind(mprisService, 'players'), bind(ignore)],
+    [bind(show_active_only), bind(mprisService, 'players'), bind(ignore), bind(activePlayer)],
     (showActive, players, ignoredApps) => {
         const filteredPlayers = filterPlayers(players, ignoredApps);
         isVis.set(!showActive || filteredPlayers?.length > 0);

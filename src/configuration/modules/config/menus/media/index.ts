@@ -2,6 +2,7 @@ import { opt } from 'src/lib/options';
 
 export default {
     ignore: opt<string[]>([]),
+    requireTrackInfo: opt<string[]>([]),
     preferredPlayer: opt<string>(''),
     hideAuthor: opt(false),
     hideAlbum: opt(false),

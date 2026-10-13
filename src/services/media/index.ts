@@ -77,11 +77,18 @@ export class MediaPlayerService {
             }
         }
 
+        for (const player of allPlayers) {
+            this._watchPlayer(player);
+        }
+
         this._mprisService.connect('player-closed', (_, closedPlayer) =>
             this._handlePlayerClosed(closedPlayer),
         );
 
-        this._mprisService.connect('player-added', (_, addedPlayer) => this._handlePlayerAdded(addedPlayer));
+        this._mprisService.connect('player-added', (_, addedPlayer) => {
+            this._watchPlayer(addedPlayer);
+            this._handlePlayerAdded(addedPlayer);
+        });
 
         Variable.derive([bind(this.activePlayer)], (player) => {
             this._updateAllMediaProperties(player);
@@ -117,6 +124,41 @@ export class MediaPlayerService {
 
         if (this.activePlayer.get() === undefined || isPreferred) {
             this.activePlayer.set(addedPlayer);
+        }
+    }
+
+    /**
+     * Re-evaluates a player whenever the fields the ignore filter depends on change
+     *
+     * Whether a player is ignored can change during its lifetime (see `requireTrackInfo`),
+     * so every player is watched, including the ones currently ignored.
+     *
+     * @param player The player to watch
+     */
+    private _watchPlayer(player: AstalMpris.Player): void {
+        player.connect('notify::playback-status', () => this._handlePlayerChanged(player));
+        player.connect('notify::artist', () => this._handlePlayerChanged(player));
+    }
+
+    /**
+     * Handles a change in a player's playback status or track info
+     *
+     * Drops the player if it became ignored while active, switching to another
+     * non-ignored player. Otherwise treats it like a newly added player.
+     *
+     * @param changedPlayer The player that changed
+     */
+    private _handlePlayerChanged(changedPlayer: AstalMpris.Player): void {
+        const { ignore } = options.menus.media;
+
+        if (!isPlayerIgnored(changedPlayer, ignore.get())) {
+            return this._handlePlayerAdded(changedPlayer);
+        }
+
+        if (changedPlayer.busName === this.activePlayer.get()?.busName) {
+            const allPlayers = this._mprisService.get_players();
+            const filteredPlayers = filterPlayers(allPlayers, ignore.get());
+            this.activePlayer.set(filteredPlayers[0]);
         }
     }
 

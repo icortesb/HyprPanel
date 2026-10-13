@@ -20,6 +20,12 @@ export const MediaMenuSettings = (): JSX.Element => {
                     subtitle="MPRIS clients to hide from the media player"
                     type="object"
                 />
+                <Option
+                    opt={options.menus.media.requireTrackInfo}
+                    title="Require Track Info"
+                    subtitle="MPRIS clients (e.g. browsers) that only count while they report an artist and are not stopped"
+                    type="object"
+                />
                 <Option opt={options.menus.media.hideAuthor} title="Hide Author" type="boolean" />
                 <Option opt={options.menus.media.hideAlbum} title="Hide Album" type="boolean" />
                 <Option opt={options.menus.media.displayTime} title="Display Time Info" type="boolean" />
